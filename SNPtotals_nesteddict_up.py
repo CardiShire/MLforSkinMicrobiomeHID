@@ -1,9 +1,13 @@
 # command line
-# nohup python3  SNPtotals_nesteddict_up.py 'S*gz' > fstsAll.tsv 2> fstErrs &
+# nohup python3  SNPtotals_nesteddict_up.py git grep --no-index '*S002*.fst.gz' > practice.tsv 2> fstErrs &
+import time
+startTime = time.time()
 
 import gzip
 import sys
 import glob
+
+
 
 def print_inner_dictionary(dict_obj, marker):
     """
@@ -37,8 +41,6 @@ def append_value(dict_obj, snp, fst):
     
     dict_obj[snp] = (s,c)
 
-        
-Path = "~/src/Fstiminator/FstCalculations/AllBamFiles/"
 
 if len(sys.argv) < 2:
     print("I need a pattern!", file=sys.stderr)
@@ -46,6 +48,16 @@ if len(sys.argv) < 2:
     
 pattern = sys.argv[1]
 filelist = glob.glob(pattern)
+
+if len(sys.argv) > 2:
+    exclude = sys.argv[2]
+    newlist = []
+    for filename in filelist:
+        if not exclude in filename:
+            newlist.append(filename)
+            
+    filelist = newlist
+    
 
 dOfD = {} # this associates a MARKER to a dictionary (key to value)
 
@@ -68,9 +80,6 @@ for i in filelist:
             dOfD[ marker ] = {}
           # add countst to the times snp was seen and add fst estimate
           append_value(dOfD[ marker ], snp, fst)
-          counter += 1
-          if counter%10000==0:
-            print(".", file=sys.stderr, end="")
             
 # add column headers
 print("Marker", "SNP", "SumFST", "Count", sep="\t")
@@ -78,3 +87,5 @@ print("Marker", "SNP", "SumFST", "Count", sep="\t")
 for marker in dOfD:
   print_inner_dictionary(dOfD[marker] , marker)
 
+executionTime = (time.time() - startTime)
+sys.stderr.write('Execution time in seconds: ' + str(executionTime) + "\n")
